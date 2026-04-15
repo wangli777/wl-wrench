@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leenow.wrench</groupId>
+    <artifactId>wl-wrench-bom</artifactId>
+    <version>1.0.0</version>
+
+    <packaging>pom</packaging>
+
+    <name>wl-wrench-bom</name>
+    <description>Bill of Materials POM (BOM) for the wl wrench modules</description>
+    <url>https://github.com/wangli777/wl-wrench#</url>
+
+    <licenses>
+        <license>
+            <name>Apache License</name>
+            <url>https://opensource.org/license/apache-2-0/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- wl wrench dcc 动态配置中心 -->
+            <dependency>
+                <groupId>com.leenow.wrench</groupId>
+                <artifactId>wl-wrench-starter-dynamic-config-center</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+
+<!--            &lt;!&ndash; wl wrench design framework 设计模式 &ndash;&gt;-->
+<!--            <dependency>-->
+<!--                <groupId>cn.bugstack.wrench</groupId>-->
+<!--                <artifactId>wl-wrench-starter-design-framework</artifactId>-->
+<!--                <version>3.0.2</version>-->
+<!--            </dependency>-->
+
+<!--            &lt;!&ndash; wl wrench rate limiter 限流 &ndash;&gt;-->
+<!--            <dependency>-->
+<!--                <groupId>cn.bugstack.wrench</groupId>-->
+<!--                <artifactId>wl-wrench-starter-rate-limiter</artifactId>-->
+<!--                <version>3.0.2</version>-->
+<!--            </dependency>-->
+
+        </dependencies>
+    </dependencyManagement>
+
+</project>
