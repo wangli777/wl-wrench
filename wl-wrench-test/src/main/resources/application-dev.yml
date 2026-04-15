@@ -12,6 +12,8 @@ wl:
         host: 127.0.0.1
         # redis port
         port: 16379
+        # redis password (可选，根据实际环境配置)
+#        password:
 
 # 日志
 logging:

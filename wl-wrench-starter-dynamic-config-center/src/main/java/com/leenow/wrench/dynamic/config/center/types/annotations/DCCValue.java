@@ -8,7 +8,7 @@ import java.lang.annotation.*;
  * @description: 动态配置中心注解
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD,ElementType.METHOD})
+@Target({ElementType.FIELD})
 @Documented
 public @interface DCCValue {
     String value() default "";

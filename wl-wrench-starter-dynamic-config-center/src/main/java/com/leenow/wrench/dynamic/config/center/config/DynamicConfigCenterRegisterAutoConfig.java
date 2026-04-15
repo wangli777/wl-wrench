@@ -15,12 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
-/**
- * @author: WangLi
- * @date: 2026/4/15 20:46
- * @description:
- */
 @Configuration
 @EnableConfigurationProperties({DynamicConfigCenterProperties.class,DynamicConfigCenterRegisterProperties.class})
 public class DynamicConfigCenterRegisterAutoConfig {
@@ -29,46 +25,59 @@ public class DynamicConfigCenterRegisterAutoConfig {
 
     @Bean("wlWrenchRedissonClient")
     public RedissonClient redissonClient(DynamicConfigCenterRegisterProperties properties) {
-        Config config = new Config();
-        // 根据需要可以设定编解码器；https://github.com/redisson/redisson/wiki/4.-%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96
-        config.setCodec(JsonJacksonCodec.INSTANCE);
+        try {
+            Config config = new Config();
+            config.setCodec(JsonJacksonCodec.INSTANCE);
 
-        config.useSingleServer()
-                .setAddress("redis://" + properties.getHost() + ":" + properties.getPort())
-                .setPassword(properties.getPassword())
-                .setConnectionPoolSize(properties.getPoolSize())
-                .setConnectionMinimumIdleSize(properties.getMinIdleSize())
-                .setIdleConnectionTimeout(properties.getIdleTimeout())
-                .setConnectTimeout(properties.getConnectTimeout())
-                .setRetryAttempts(properties.getRetryAttempts())
-                .setRetryInterval(properties.getRetryInterval())
-                .setPingConnectionInterval(properties.getPingInterval())
-                .setKeepAlive(properties.isKeepAlive())
-        ;
+            config.useSingleServer()
+                    .setAddress("redis://" + properties.getHost() + ":" + properties.getPort())
+                    .setPassword(properties.getPassword())
+                    .setConnectionPoolSize(properties.getPoolSize())
+                    .setConnectionMinimumIdleSize(properties.getMinIdleSize())
+                    .setIdleConnectionTimeout(properties.getIdleTimeout())
+                    .setConnectTimeout(properties.getConnectTimeout())
+                    .setRetryAttempts(properties.getRetryAttempts())
+                    .setRetryInterval(properties.getRetryInterval())
+                    .setPingConnectionInterval(properties.getPingInterval())
+                    .setKeepAlive(properties.isKeepAlive());
 
-        RedissonClient redissonClient = Redisson.create(config);
+            RedissonClient redissonClient = Redisson.create(config);
 
-        log.info("wl-wrench，注册器（redis）链接初始化完成。{} {} {}", properties.getHost(), properties.getPoolSize(), !redissonClient.isShutdown());
+            if (redissonClient.isShutdown()) {
+                log.error("wl-wrench，Redis 连接初始化失败 - Host: {}, Port: {}", properties.getHost(), properties.getPort());
+                throw new RuntimeException("Redis 连接初始化失败");
+            }
 
-        return redissonClient;
+            log.info("wl-wrench，注册器（redis）链接初始化完成。{} {} {}", properties.getHost(), properties.getPoolSize(), !redissonClient.isShutdown());
+
+            return redissonClient;
+        } catch (Exception e) {
+            log.error("wl-wrench，Redis 连接创建异常 - Host: {}, Port: {}, Error: {}", 
+                     properties.getHost(), properties.getPort(), e.getMessage(), e);
+            throw new RuntimeException("Redis 连接创建失败：" + e.getMessage(), e);
+        }
     }
 
     @Bean
+    @DependsOn("wlWrenchRedissonClient")
     public IDynamicConfigCenterService dynamicConfigCenterService(DynamicConfigCenterProperties dynamicConfigCenterProperties, RedissonClient wlWrenchRedissonClient) {
         return new DynamicConfigCenterService(dynamicConfigCenterProperties, wlWrenchRedissonClient);
     }
 
     @Bean
+    @DependsOn("dynamicConfigCenterService")
     DynamicConfigCenterBeanPostProcessor dynamicConfigCenterBeanPostProcessor(IDynamicConfigCenterService dynamicConfigCenterService) {
         return new DynamicConfigCenterBeanPostProcessor(dynamicConfigCenterService);
     }
 
     @Bean
+    @DependsOn("dynamicConfigCenterService")
     DynamicConfigCenterAdjustValueListener  dynamicConfigCenterAdjustValueListener(IDynamicConfigCenterService dynamicConfigCenterService) {
         return new DynamicConfigCenterAdjustValueListener(dynamicConfigCenterService);
     }
 
     @Bean(name = "dynamicConfigCenterRedisTopic")
+    @DependsOn({"wlWrenchRedissonClient", "dynamicConfigCenterAdjustValueListener"})
     public RTopic threadPoolConfigAdjustListener(DynamicConfigCenterProperties dynamicConfigCenterProperties,
                                                  RedissonClient redissonClient,
                                                  DynamicConfigCenterAdjustValueListener dynamicConfigCenterAdjustValueListener) {

@@ -16,12 +16,7 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * @author: WangLi
- * @date: 2026/4/15 19:36
- * @description:
- */
-public class DynamicConfigCenterService implements IDynamicConfigCenterService{
+public class DynamicConfigCenterService implements IDynamicConfigCenterService {
     private final RedissonClient redissonClient;
     private final DynamicConfigCenterProperties dynamicConfigCenterProperties;
 
@@ -36,11 +31,14 @@ public class DynamicConfigCenterService implements IDynamicConfigCenterService{
 
     @Override
     public Object proxyObject(Object bean) {
-        Class<?> targetClass =bean.getClass();
+        Class<?> targetClass = bean.getClass();
         Object targetObj = bean;
         if (AopUtils.isAopProxy(bean)) {
             targetClass = AopUtils.getTargetClass(bean);
-            targetObj = AopProxyUtils.getSingletonTarget(bean);
+            Object singletonTarget = AopProxyUtils.getSingletonTarget(bean);
+            if (singletonTarget != null) {
+                targetObj = singletonTarget;
+            }
         }
 
         Field[] fields = targetClass.getDeclaredFields();
@@ -51,7 +49,7 @@ public class DynamicConfigCenterService implements IDynamicConfigCenterService{
             DCCValue dccValue = field.getAnnotation(DCCValue.class);
             String value = dccValue.value();
             if (StringUtils.isBlank(value)) {
-                throw new RuntimeException(field.getName() + " @DCCValue is not config value config case 「isSwitch/isSwitch:1」");
+                throw new RuntimeException(field.getName() + " @DCCValue is not config value config case [isSwitch/isSwitch:1]");
             }
 
             String[] split = value.split(Constants.SYMBOL_COLON);
@@ -59,10 +57,8 @@ public class DynamicConfigCenterService implements IDynamicConfigCenterService{
 
             String defaultValue = split.length == 2 ? split[1] : null;
 
-            // 设置值
             String setValue = defaultValue;
             try {
-                // 如果为空则抛出异常
                 if (StringUtils.isBlank(defaultValue)) {
                     throw new RuntimeException("dcc config error " + key + " is not null - 请配置默认值！");
                 }
@@ -72,11 +68,16 @@ public class DynamicConfigCenterService implements IDynamicConfigCenterService{
                 } else {
                     bucket.set(defaultValue);
                 }
+                
                 field.setAccessible(true);
-                field.set(targetObj, setValue);
+                Object convertedValue = convertValue(setValue, field.getType());
+                field.set(targetObj, convertedValue);
                 field.setAccessible(false);
+                
+                log.info("DCC 配置注入成功 - Key: {}, Value: {}, Type: {}", key, convertedValue, field.getType().getSimpleName());
             } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+                log.error("DCC 配置注入失败 - Key: {}, Error: {}", key, e.getMessage(), e);
+                throw new RuntimeException("DCC 配置注入失败：" + key, e);
             }
             dccBeanGroup.put(key, targetObj);
         }
@@ -85,39 +86,64 @@ public class DynamicConfigCenterService implements IDynamicConfigCenterService{
 
     @Override
     public void adjustAttribute(AttributeVO attribute) {
-
-        // 属性信息
         String key = dynamicConfigCenterProperties.getKey(attribute.getAttribute());
         String value = attribute.getValue();
 
-        // 调整属性值
         RBucket<String> bucket = redissonClient.getBucket(key);
-        if (!bucket.isExists()) return;
+        if (!bucket.isExists()) {
+            log.warn("DCC 配置不存在，跳过更新 - Key: {}", key);
+            return;
+        }
         bucket.set(value);
 
-        Object object = dccBeanGroup.get(key);
-        if (object == null) return;
+        Object bean = dccBeanGroup.get(key);
+        if (bean == null) {
+            log.warn("DCC Bean 未找到，跳过更新 - Key: {}", key);
+            return;
+        }
 
-        Class<?> beanClass = object.getClass();
-        // 检查 objBean 是否是代理对象
-        if(AopUtils.isAopProxy(object)){
-            // 获取代理对象的目标对象
-            beanClass =  AopUtils.getTargetClass(object);
+        Class<?> beanClass = bean.getClass();
+        if (AopUtils.isAopProxy(bean)) {
+            beanClass = AopUtils.getTargetClass(bean);
         }
 
         try {
-            // 1. getDeclaredField 方法用于获取指定类中声明的所有字段，包括私有字段、受保护字段和公共字段。
-            // 2. getField 方法用于获取指定类中的公共字段，即只能获取到公共访问修饰符（public）的字段。
             Field field = beanClass.getDeclaredField(attribute.getAttribute());
             field.setAccessible(true);
-            field.set(object, value);
+            Object convertedValue = convertValue(value, field.getType());
+            field.set(bean, convertedValue);
             field.setAccessible(false);
 
-            log.info("DCC 节点监听，动态设置值 {} {}", key, value);
+            log.info("DCC 配置动态更新成功 - Key: {}, OldValue: {}, NewValue: {}", 
+                    key, bucket.get(), value);
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("DCC 配置动态更新失败 - Key: {}, Error: {}", key, e.getMessage(), e);
+            throw new RuntimeException("DCC 配置动态更新失败：" + key, e);
         }
+    }
 
+    private Object convertValue(String value, Class<?> targetType) {
+        if (targetType == String.class) {
+            return value;
+        } else if (targetType == Integer.class || targetType == int.class) {
+            return Integer.valueOf(value);
+        } else if (targetType == Long.class || targetType == long.class) {
+            return Long.valueOf(value);
+        } else if (targetType == Double.class || targetType == double.class) {
+            return Double.valueOf(value);
+        } else if (targetType == Float.class || targetType == float.class) {
+            return Float.valueOf(value);
+        } else if (targetType == Boolean.class || targetType == boolean.class) {
+            return Boolean.valueOf(value);
+        } else if (targetType == Short.class || targetType == short.class) {
+            return Short.valueOf(value);
+        } else if (targetType == Byte.class || targetType == byte.class) {
+            return Byte.valueOf(value);
+        } else if (targetType.isEnum()) {
+            return Enum.valueOf((Class<Enum>) targetType, value);
+        } else {
+            return value;
+        }
     }
 }
