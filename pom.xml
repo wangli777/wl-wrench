@@ -11,6 +11,7 @@
 
     <modules>
         <module>wl-wrench-bom</module>
+        <module>wl-wrench-design-framework</module>
         <module>wl-wrench-starter-dynamic-config-center</module>
         <module>wl-wrench-test</module>
     </modules>

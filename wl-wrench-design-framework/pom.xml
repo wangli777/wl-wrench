@@ -10,6 +10,12 @@
     </parent>
     <description>wl wrench modules design framework</description>
     <url>https://github.com/wangli777/wl-wrench</url>
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+    </dependencies>
     <artifactId>wl-wrench-design-framework</artifactId>
 
 
