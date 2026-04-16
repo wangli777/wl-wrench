@@ -55,6 +55,13 @@
             <version>1.0.0</version>
         </dependency>
 
+        <!-- 设计框架 -->
+        <dependency>
+            <groupId>com.leenow.wrench</groupId>
+            <artifactId>wl-wrench-design-framework</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

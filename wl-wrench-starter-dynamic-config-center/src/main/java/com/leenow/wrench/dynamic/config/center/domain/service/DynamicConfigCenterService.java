@@ -1,6 +1,6 @@
 package com.leenow.wrench.dynamic.config.center.domain.service;
 
-import com.leenow.wrench.dynamic.config.center.config.DynamicConfigCenterProperties;
+import com.leenow.wrench.dynamic.config.center.config.properties.DynamicConfigCenterProperties;
 import com.leenow.wrench.dynamic.config.center.domain.model.vo.AttributeVO;
 import com.leenow.wrench.dynamic.config.center.types.annotations.DCCValue;
 import com.leenow.wrench.dynamic.config.center.types.common.Constants;

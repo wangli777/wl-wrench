@@ -1,8 +1,7 @@
-package com.leenow.wrench.test;
+package com.leenow.wrench.test.dcc;
 
 import com.leenow.wrench.dynamic.config.center.domain.model.vo.AttributeVO;
 import com.leenow.wrench.dynamic.config.center.domain.service.DynamicConfigCenterService;
-import com.leenow.wrench.dynamic.config.center.types.annotations.DCCValue;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,8 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 动态配置中心功能测试类

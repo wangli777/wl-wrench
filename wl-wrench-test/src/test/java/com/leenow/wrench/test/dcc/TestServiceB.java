@@ -1,4 +1,4 @@
-package com.leenow.wrench.test;
+package com.leenow.wrench.test.dcc;
 
 import com.leenow.wrench.dynamic.config.center.types.annotations.DCCValue;
 import org.springframework.stereotype.Service;

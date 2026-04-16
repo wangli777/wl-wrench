@@ -1,4 +1,4 @@
-package com.leenow.wrench.test;
+package com.leenow.wrench.test.dcc;
 
 import com.leenow.wrench.dynamic.config.center.domain.service.DynamicConfigCenterService;
 import lombok.extern.slf4j.Slf4j;
