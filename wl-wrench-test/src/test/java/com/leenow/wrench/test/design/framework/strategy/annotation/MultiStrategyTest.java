@@ -3,7 +3,7 @@ package com.leenow.wrench.test.design.framework.strategy.annotation;
 import com.leenow.wrench.design.framework.strategy.DynamicContext;
 import com.leenow.wrench.design.framework.strategy.StrategyHandler;
 import com.leenow.wrench.design.framework.strategy.base.BaseResponse;
-import com.leenow.wrench.test.design.framework.strategy.annotation.manager.StrategyRegistry;
+import com.leenow.wrench.design.framework.strategy.manager.StrategyRegistry;
 import com.leenow.wrench.test.design.framework.strategy.annotation.strategy.FreeShippingStrategy;
 import com.leenow.wrench.test.design.framework.strategy.annotation.strategy.FreeShippingStrategy.ShippingResponse;
 import com.leenow.wrench.test.design.framework.strategy.annotation.strategy.FullReductionStrategy;
@@ -47,30 +47,30 @@ import static org.junit.Assert.*;
 @SpringBootTest
 public class MultiStrategyTest {
     
-    @Resource
-    private StrategyRegistry registry;
+
+    private final StrategyRegistry registry =  new StrategyRegistry();
     
-    @Resource
-    private VIPDiscountStrategy vipDiscountStrategy;
-    
-    @Resource
-    private FreeShippingStrategy freeShippingStrategy;
-    
-    @Resource
-    private FullReductionStrategy fullReductionStrategy;
-    
+    // 手动创建策略 Bean（因为 Spring 不会自动扫描 test 目录）
     @Before
     public void setUp() {
         // 清空并重新注册策略
         registry.clear();
         
-        // 注册所有策略（通过 Spring 注入）
+        // 手动创建并注册策略
+        vipDiscountStrategy = new VIPDiscountStrategy();
+        freeShippingStrategy = new FreeShippingStrategy();
+        fullReductionStrategy = new FullReductionStrategy();
+        
         registry.register(vipDiscountStrategy);
         registry.register(freeShippingStrategy);
         registry.register(fullReductionStrategy);
         
-        log.info("策略注册表初始化完成");
+        log.info("已注册 {} 个策略", registry.getStrategyCount());
     }
+    
+    private VIPDiscountStrategy vipDiscountStrategy;
+    private FreeShippingStrategy freeShippingStrategy;
+    private FullReductionStrategy fullReductionStrategy;
     
     @After
     public void tearDown() {
@@ -99,14 +99,14 @@ public class MultiStrategyTest {
         try {
             // 查找匹配的策略
             List<StrategyHandler> matchingStrategies = 
-                registry.findMatchingStrategies(request, context);
+                registry.findMatchingStrategies((Object) request, context);
             
             // 验证匹配的策略数量（VIP 折扣 + 免运费 + 满减，因为 500 元>=300 元）
             assertEquals("应该匹配 3 个策略", 3, matchingStrategies.size());
             
-            // 执行所有匹配的策略
-            List<? extends BaseResponse> results = registry.executeAllMatching(request, context);
-            
+            // 执行所有匹配的策略（使用泛型方法，自动类型推断）
+            List<BaseResponse> results = registry.executeAllMatching(request, context);
+
             // 验证结果
             assertEquals("应该有 3 个执行结果", 3, results.size());
             
@@ -157,7 +157,7 @@ public class MultiStrategyTest {
         try {
             // 查找匹配的策略
             List<StrategyHandler> matchingStrategies = 
-                registry.findMatchingStrategies(request, context);
+                registry.findMatchingStrategies((Object) request, context);
             
             // 验证匹配的策略数量（免运费 + 满减，因为金额>=200 且>=300）
             assertEquals("应该匹配 2 个策略", 2, matchingStrategies.size());
@@ -208,7 +208,7 @@ public class MultiStrategyTest {
         try {
             // 查找匹配的策略
             List<StrategyHandler> matchingStrategies = 
-                registry.findMatchingStrategies(request, context);
+                registry.findMatchingStrategies((Object) request, context);
             
             // 验证匹配的策略数量（VIP 折扣 + 免运费 + 满减）
             assertEquals("应该匹配 3 个策略", 3, matchingStrategies.size());
@@ -264,7 +264,7 @@ public class MultiStrategyTest {
         try {
             // 查找匹配的策略
             List<StrategyHandler> matchingStrategies = 
-                registry.findMatchingStrategies(request, context);
+                registry.findMatchingStrategies((Object) request, context);
             
             // 验证没有匹配的策略
             assertEquals("不应该匹配任何策略", 0, matchingStrategies.size());
@@ -338,7 +338,7 @@ public class MultiStrategyTest {
         
         try {
             // 获取所有策略
-            List<StrategyHandler> allStrategies = registry.getAllStrategies();
+            List<StrategyHandler<?, ?, ?>> allStrategies = registry.getAllStrategies();
             
             log.info("注册的策略顺序（按优先级）：");
             for (int i = 0; i < allStrategies.size(); i++) {
