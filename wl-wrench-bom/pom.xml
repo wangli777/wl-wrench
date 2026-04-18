@@ -33,19 +33,13 @@
                 <version>1.0.0</version>
             </dependency>
 
-<!--            &lt;!&ndash; wl wrench design framework 设计模式 &ndash;&gt;-->
-<!--            <dependency>-->
-<!--                <groupId>cn.bugstack.wrench</groupId>-->
-<!--                <artifactId>wl-wrench-starter-design-framework</artifactId>-->
-<!--                <version>3.0.2</version>-->
-<!--            </dependency>-->
+            <!-- wl wrench design framework 设计模式 -->
+            <dependency>
+                <groupId>com.leenow.wrench</groupId>
+                <artifactId>wl-wrench-starter-design-framework</artifactId>
+                <version>1.0.0</version>
+            </dependency>
 
-<!--            &lt;!&ndash; wl wrench rate limiter 限流 &ndash;&gt;-->
-<!--            <dependency>-->
-<!--                <groupId>cn.bugstack.wrench</groupId>-->
-<!--                <artifactId>wl-wrench-starter-rate-limiter</artifactId>-->
-<!--                <version>3.0.2</version>-->
-<!--            </dependency>-->
 
         </dependencies>
     </dependencyManagement>
