@@ -36,7 +36,7 @@
             <!-- wl wrench design framework 设计模式 -->
             <dependency>
                 <groupId>com.leenow.wrench</groupId>
-                <artifactId>wl-wrench-starter-design-framework</artifactId>
+                <artifactId>wl-wrench-design-framework</artifactId>
                 <version>1.0.0</version>
             </dependency>
 
