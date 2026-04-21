@@ -1,8 +1,8 @@
-package com.leenow.wrench.design.framework.strategy.manager;
+package com.leenow.wrench.design.framework.annostrategy.manager;
 
 import com.leenow.wrench.design.framework.strategy.DynamicContext;
-import com.leenow.wrench.design.framework.strategy.StrategyHandler;
-import com.leenow.wrench.design.framework.strategy.annotation.Strategy;
+import com.leenow.wrench.design.framework.annostrategy.StrategyHandler;
+import com.leenow.wrench.design.framework.annostrategy.annotation.Strategy;
 import com.leenow.wrench.design.framework.strategy.base.BaseRequest;
 import com.leenow.wrench.design.framework.strategy.base.BaseResponse;
 import org.slf4j.Logger;
@@ -105,7 +105,7 @@ public abstract class AbstractStrategyRegistry {
         
         for (StrategyHandler strategy : matchingStrategies) {
             try {
-                BaseResponse result = strategy.apply((BaseRequest) request, context);
+                BaseResponse result = strategy.handle((BaseRequest) request, context);
                 results.add((R) result);
                 log.info("策略{}执行成功", getStrategyName(strategy));
             } catch (Exception e) {
@@ -139,7 +139,7 @@ public abstract class AbstractStrategyRegistry {
         
         StrategyHandler strategy = matchingStrategies.get(0);
         // 使用原始类型调用，避免泛型类型转换问题
-        BaseResponse result = ((StrategyHandler) strategy).apply((BaseRequest) request, context);
+        BaseResponse result = ((StrategyHandler) strategy).handle((BaseRequest) request, context);
         log.info("执行策略 {} 成功", getStrategyName(strategy));
         
         return (R) result;

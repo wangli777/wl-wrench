@@ -12,10 +12,10 @@ public interface StrategyMapper<T extends BaseRequest, D extends DynamicContext,
 
     /**
      * 获取待执行的策略处理器
+     *
      * @param requestParameter 入参
-     * @param dynamicContext 上下文
      * @return 待执行策略处理器
      * @throws Exception
      */
-    StrategyHandler<T, D, R> getNextHandler(T requestParameter, D dynamicContext) throws Exception;
+    StrategyHandler<T, D, R> getNextHandler(T requestParameter) throws Exception;
 }

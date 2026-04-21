@@ -22,24 +22,24 @@ public class RootNode extends AbstractOrderSupport {
     private SecondNode nextNode;
 
     @Override
-    protected OrderResponse doApply(OrderRequest requestParameter, OrderContext dynamicContext) throws Exception {
+    protected OrderResponse doApply(OrderRequest requestParameter) throws Exception {
         log.info("【RootNode】规则决策树 userId:{}", requestParameter);
-        return router(requestParameter, dynamicContext);
+        return router(requestParameter);
     }
 
 
     @Override
-    public StrategyHandler<OrderRequest, OrderContext, OrderResponse> getNextHandler(OrderRequest requestParameter, OrderContext dynamicContext) throws Exception {
+    public StrategyHandler<OrderRequest, OrderContext, OrderResponse> getNextHandler(OrderRequest requestParameter) throws Exception {
         return nextNode;
     }
 
     @Override
-    protected void applyAfterException(OrderRequest requestParameter, OrderContext dynamicContext, Exception e) {
+    protected void applyAfterException(OrderRequest requestParameter,  Exception e) {
         log.info("处理异常，applyAfterException - 用于做日志、监控和 mq 处理" + e.getMessage());
     }
 
     @Override
-    protected void applyAfter(OrderRequest requestParameter, OrderContext dynamicContext, OrderResponse response) {
+    protected void applyAfter(OrderRequest requestParameter, OrderResponse response) {
         log.info("处理完成，applyAfter - 用于做日志、监控和 mq 处理");
     }
 

@@ -14,15 +14,15 @@ import org.springframework.stereotype.Component;
 public class MemberLevel2Node extends AbstractOrderSupport {
 
     @Override
-    protected OrderResponse doApply(OrderRequest requestParameter, OrderContext dynamicContext) throws Exception {
+    protected OrderResponse doApply(OrderRequest requestParameter) throws Exception {
         log.info("【级别节点 -2】规则决策树 requestParameter:{}", requestParameter);
         OrderResponse response = new OrderResponse();
-        response.setOrderId("level2" + JSON.toJSONString(dynamicContext));
+        response.setOrderId("level2" + JSON.toJSONString(getContext()));
         return response;
     }
 
     @Override
-    public StrategyHandler<OrderRequest, OrderContext, OrderResponse> getNextHandler(OrderRequest requestParameter, OrderContext dynamicContext) throws Exception {
+    public StrategyHandler<OrderRequest, OrderContext, OrderResponse> getNextHandler(OrderRequest requestParameter) throws Exception {
         return null;
     }
 

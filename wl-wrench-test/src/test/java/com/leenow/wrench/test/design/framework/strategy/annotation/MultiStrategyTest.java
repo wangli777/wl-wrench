@@ -1,9 +1,9 @@
 package com.leenow.wrench.test.design.framework.strategy.annotation;
 
+import com.leenow.wrench.design.framework.annostrategy.StrategyHandler;
 import com.leenow.wrench.design.framework.strategy.DynamicContext;
-import com.leenow.wrench.design.framework.strategy.StrategyHandler;
 import com.leenow.wrench.design.framework.strategy.base.BaseResponse;
-import com.leenow.wrench.design.framework.strategy.manager.StrategyRegistry;
+import com.leenow.wrench.design.framework.annostrategy.manager.StrategyRegistry;
 import com.leenow.wrench.test.design.framework.strategy.annotation.strategy.FreeShippingStrategy;
 import com.leenow.wrench.test.design.framework.strategy.annotation.strategy.FreeShippingStrategy.ShippingResponse;
 import com.leenow.wrench.test.design.framework.strategy.annotation.strategy.FullReductionStrategy;
@@ -19,7 +19,6 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -98,7 +97,7 @@ public class MultiStrategyTest {
         
         try {
             // 查找匹配的策略
-            List<StrategyHandler> matchingStrategies = 
+            List<StrategyHandler> matchingStrategies =
                 registry.findMatchingStrategies((Object) request, context);
             
             // 验证匹配的策略数量（VIP 折扣 + 免运费 + 满减，因为 500 元>=300 元）
@@ -131,7 +130,6 @@ public class MultiStrategyTest {
             log.info("满减结果：{}", reductionResponse.getMessage());
             
         } finally {
-            context.close();
         }
         
         log.info("========== 测试 1 完成 ==========\n");
@@ -182,7 +180,7 @@ public class MultiStrategyTest {
             log.info("满减结果：{}", reductionResponse.getMessage());
             
         } finally {
-            context.close();
+            
         }
         
         log.info("========== 测试 2 完成 ==========\n");
@@ -238,7 +236,7 @@ public class MultiStrategyTest {
             log.info("满减结果：{}", reductionResponse.getMessage());
             
         } finally {
-            context.close();
+            
         }
         
         log.info("========== 测试 3 完成 ==========\n");
@@ -276,7 +274,7 @@ public class MultiStrategyTest {
             log.info("该用户不满足任何优惠条件");
             
         } finally {
-            context.close();
+            
         }
         
         log.info("========== 测试 4 完成 ==========\n");
@@ -313,7 +311,7 @@ public class MultiStrategyTest {
             log.info("第一个匹配策略的结果：{}", vipResponse.getMessage());
             
         } finally {
-            context.close();
+            
         }
         
         log.info("========== 测试 5 完成 ==========\n");
@@ -364,7 +362,7 @@ public class MultiStrategyTest {
             log.info("策略优先级验证通过");
             
         } finally {
-            context.close();
+            
         }
         
         log.info("========== 测试 6 完成 ==========\n");

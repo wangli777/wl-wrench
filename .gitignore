@@ -1,1 +1,3 @@
 *.log
+/wl-wrench-design-framework/.claude/
+/wl-wrench-design-framework/.trae/

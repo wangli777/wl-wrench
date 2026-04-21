@@ -1,6 +1,7 @@
-package com.leenow.wrench.design.framework.strategy;
+package com.leenow.wrench.design.framework.annostrategy;
 
 
+import com.leenow.wrench.design.framework.strategy.DynamicContext;
 import com.leenow.wrench.design.framework.strategy.base.BaseRequest;
 import com.leenow.wrench.design.framework.strategy.base.BaseResponse;
 
@@ -37,13 +38,21 @@ import com.leenow.wrench.design.framework.strategy.base.BaseResponse;
  * @date 2026/4/16
  */
 public interface StrategyHandler<T extends BaseRequest, D extends DynamicContext, R extends BaseResponse> {
-    
-    /**
-     * 默认处理器
-     * <p>当找不到合适的策略时使用，直接返回 null</p>
-     */
-    StrategyHandler DEFAULT_HANDLER = (request) -> null;
 
+    /**
+     * 条件匹配方法
+     * 
+     * <p>判断当前策略是否适用于给定的请求和上下文。</p>
+     * <p>默认实现返回 true，表示总是匹配。</p>
+     * 
+     * @param requestParameter 请求参数
+     * @param dynamicContext 动态上下文
+     * @return 如果匹配返回 true，否则返回 false
+     * @throws Exception 如果匹配过程发生错误
+     */
+    default boolean match(T requestParameter, D dynamicContext) throws Exception {
+        return true;
+    }
 
     /**
      * 执行策略
@@ -51,25 +60,11 @@ public interface StrategyHandler<T extends BaseRequest, D extends DynamicContext
      * <p>执行具体的业务逻辑。</p>
      * 
      * @param requestParameter 请求参数
-//     * @param dynamicContext 动态上下文
+     * @param dynamicContext 动态上下文
      * @return 执行结果
      * @throws Exception 如果执行过程发生错误
      */
-    R apply(T requestParameter) throws Exception;
+    R handle(T requestParameter, D dynamicContext) throws Exception;
 
-//    /**
-//     * 继续执行责任链中的下一个处理器
-//     *
-//     * <p>在责任链模式中使用，调用下一个处理器。</p>
-//     * <p>默认实现返回 null。</p>
-//     *
-//     * @param requestParameter 请求参数
-//     * @param dynamicContext 动态上下文
-//     * @return 下一个处理器的执行结果
-//     * @throws Exception 如果执行过程发生错误
-//     */
-//    default R proceed(T requestParameter, D dynamicContext) throws Exception {
-//       return null;
-//   }
 
 }

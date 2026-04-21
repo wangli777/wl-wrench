@@ -1,9 +1,8 @@
-package com.leenow.wrench.design.framework.strategy.manager;
+package com.leenow.wrench.design.framework.annostrategy.manager;
 
 import com.leenow.wrench.design.framework.strategy.DynamicContext;
-import com.leenow.wrench.design.framework.strategy.StrategyHandler;
+import com.leenow.wrench.design.framework.annostrategy.StrategyHandler;
 import com.leenow.wrench.design.framework.strategy.base.BaseRequest;
-import com.leenow.wrench.design.framework.strategy.base.BaseResponse;
 
 /**
  * 策略注册表（纯 Java 实现）

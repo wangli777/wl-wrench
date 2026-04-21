@@ -33,13 +33,13 @@ public class ThirdNode extends AbstractOrderSupport {
     private ThreadPoolExecutor threadPoolExecutor;
 
     @Override
-    protected OrderResponse applyBefore(OrderRequest requestParameter, OrderContext dynamicContext) throws Exception {
+    protected OrderResponse applyBefore(OrderRequest requestParameter) throws Exception {
         if ("1".equals(requestParameter.getUserId())){
             OrderResponse response = new OrderResponse();
             response.setOrderId("applyBefore");
             return response;
         }
-        return super.applyBefore(requestParameter, dynamicContext);
+        return super.applyBefore(requestParameter);
     }
 
 //    @Override
@@ -56,7 +56,7 @@ public class ThirdNode extends AbstractOrderSupport {
      * 2. loadContext 在需要的节点就重写，不需要的节点不用处理
      */
     @Override
-    protected void loadContext(OrderRequest requestParameter, OrderContext dynamicContext) throws Exception {
+    protected OrderContext loadContext(OrderRequest requestParameter) throws Exception {
         CompletableFuture<String> accountType01 = CompletableFuture.supplyAsync(() -> {
             log.info("异步查询账户标签，账户标签；开户|冻结|止付|可用");
             return new Random().nextBoolean() ? "账户冻结" : "账户可用";
@@ -67,32 +67,40 @@ public class ThirdNode extends AbstractOrderSupport {
             return new Random().nextBoolean() ? "拦截" : "已授信";
         }, threadPoolExecutor);
 
+
+
+        OrderContext context = new OrderContext();
         CompletableFuture.allOf(accountType01, accountType02)
                 .thenRun(() -> {
-                    dynamicContext.setValue("accountType01", accountType01.join(), String.class);
-                    dynamicContext.setValue("accountType02", accountType02.join(), String.class);
+                    context.setUserId(requestParameter.getUserId());
+                    context.setUserLevel(requestParameter.getUserLevel());
+                    context.setOrderChannel("xxx");
+                    context.setValue("accountType01", accountType01.join(), String.class);
+                    context.setValue("accountType02", accountType02.join(), String.class);
                 }).join();
+        return context;
     }
 
     @Override
-    protected OrderResponse doApply(OrderRequest requestParameter, OrderContext dynamicContext) throws Exception {
+    protected OrderResponse doApply(OrderRequest requestParameter) throws Exception {
         log.info("【ThirdNode】规则决策树 requestParameter:{}", requestParameter);
 //                Integer.parseInt("1xxx");
 
         // 模拟查询用户级别
         int level = new Random().nextInt(2);
         log.info("模拟查询用户级别 level:{}", level);
+        OrderContext context = getContext();
+        context.setUserLevel(level);
 
-        dynamicContext.setUserLevel(level);
-
-        return router(requestParameter, dynamicContext);
+        return router(requestParameter);
     }
 
 
     @Override
-    public StrategyHandler<OrderRequest, OrderContext, OrderResponse> getNextHandler(OrderRequest requestParameter, OrderContext dynamicContext) throws Exception {
-        String accountType01 = dynamicContext.getValue("accountType01");
-        String accountType02 = dynamicContext.getValue("accountType02");
+    public StrategyHandler<OrderRequest, OrderContext, OrderResponse> getNextHandler(OrderRequest requestParameter) throws Exception {
+        OrderContext dynamicContext = getContext();
+        String accountType01 = dynamicContext.getValue("accountType01", String.class);
+        String accountType02 = dynamicContext.getValue("accountType02", String.class);
 
         if ("账户冻结".equals(accountType01)) {
             return memberLevel1Node;
@@ -111,12 +119,12 @@ public class ThirdNode extends AbstractOrderSupport {
     }
 
     @Override
-    protected void applyAfterException(OrderRequest requestParameter, OrderContext dynamicContext, Exception e) {
+    protected void applyAfterException(OrderRequest requestParameter,  Exception e) {
         log.info("处理异常，applyAfterException - 用于做日志、监控和 mq 处理" + e.getMessage());
     }
 
     @Override
-    protected void applyAfter(OrderRequest requestParameter, OrderContext dynamicContext, OrderResponse response) {
+    protected void applyAfter(OrderRequest requestParameter,  OrderResponse response) {
         log.info("处理完成，applyAfter - 用于做日志、监控和 mq 处理");
     }
 

@@ -1,10 +1,10 @@
-package com.leenow.wrench.design.framework.strategy.support;
+package com.leenow.wrench.design.framework.annostrategy.support;
 
 import com.leenow.wrench.design.framework.strategy.DynamicContext;
-import com.leenow.wrench.design.framework.strategy.annotation.Action;
-import com.leenow.wrench.design.framework.strategy.annotation.Condition;
-import com.leenow.wrench.design.framework.strategy.annotation.Fact;
-import com.leenow.wrench.design.framework.strategy.annotation.Strategy;
+import com.leenow.wrench.design.framework.annostrategy.annotation.Action;
+import com.leenow.wrench.design.framework.annostrategy.annotation.Condition;
+import com.leenow.wrench.design.framework.annostrategy.annotation.Fact;
+import com.leenow.wrench.design.framework.annostrategy.annotation.Strategy;
 import com.leenow.wrench.design.framework.strategy.exception.StrategyExecutionException;
 
 import java.lang.reflect.Method;
@@ -136,7 +136,7 @@ public class AnnotationSupport {
                 String factName = fact.value();
                 
                 // 从上下文中获取值
-                Object value = context.getValue(factName);
+                Object value = context.getValue(factName,parameter.getType());
                 if (value == null) {
                     throw new StrategyExecutionException(
                         String.format("Fact '%s' 在上下文中不存在", factName));

@@ -13,15 +13,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class MemberLevel1Node extends AbstractOrderSupport {
     @Override
-    protected OrderResponse doApply(OrderRequest requestParameter, OrderContext dynamicContext) throws Exception {
+    protected OrderResponse doApply(OrderRequest requestParameter) throws Exception {
         log.info("【级别节点 -1】规则决策树 requestParameter:{}",requestParameter);
         OrderResponse response = new OrderResponse();
-        response.setOrderId("level1" + JSON.toJSONString(dynamicContext));
+        response.setOrderId("level1" + JSON.toJSONString(getContext()));
         return response;
     }
 
     @Override
-    public StrategyHandler<OrderRequest, OrderContext, OrderResponse> getNextHandler(OrderRequest requestParameter, OrderContext dynamicContext) throws Exception {
+    public StrategyHandler<OrderRequest, OrderContext, OrderResponse> getNextHandler(OrderRequest requestParameter) throws Exception {
 //        return null; 这里return null和defaultStrategyHandler都行，因为doApply直接返回了response，并没有调用router方法找下一个
         return defaultStrategyHandler;
     }

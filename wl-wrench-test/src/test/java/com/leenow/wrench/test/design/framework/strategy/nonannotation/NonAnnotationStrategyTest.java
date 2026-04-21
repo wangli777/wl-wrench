@@ -24,7 +24,7 @@ public class NonAnnotationStrategyTest {
 
     @Test
     public void test() throws Exception {
-        OrderResponse result = rootNode.apply(new OrderRequest("2", 100.0, 1, "normal"), new OrderContext());
+        OrderResponse result = rootNode.apply(new OrderRequest("2", 100.0, 1, "normal"));
 
         log.info("测试结果:{}", result);
     }

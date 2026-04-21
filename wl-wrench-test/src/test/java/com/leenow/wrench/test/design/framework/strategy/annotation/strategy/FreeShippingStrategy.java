@@ -1,12 +1,12 @@
 package com.leenow.wrench.test.design.framework.strategy.annotation.strategy;
 
 import com.leenow.wrench.design.framework.strategy.DynamicContext;
-import com.leenow.wrench.design.framework.strategy.annotation.Action;
-import com.leenow.wrench.design.framework.strategy.annotation.Condition;
-import com.leenow.wrench.design.framework.strategy.annotation.Fact;
-import com.leenow.wrench.design.framework.strategy.annotation.Strategy;
+import com.leenow.wrench.design.framework.annostrategy.annotation.Action;
+import com.leenow.wrench.design.framework.annostrategy.annotation.Condition;
+import com.leenow.wrench.design.framework.annostrategy.annotation.Fact;
+import com.leenow.wrench.design.framework.annostrategy.annotation.Strategy;
 import com.leenow.wrench.design.framework.strategy.base.BaseResponse;
-import com.leenow.wrench.design.framework.strategy.support.AnnotatedStrategyHandler;
+import com.leenow.wrench.design.framework.annostrategy.support.AnnotatedStrategyHandler;
 import org.springframework.stereotype.Component;
 
 /**

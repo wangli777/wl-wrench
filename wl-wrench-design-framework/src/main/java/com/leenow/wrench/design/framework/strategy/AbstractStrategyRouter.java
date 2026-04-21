@@ -60,18 +60,25 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
      */
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
+    public D getContext() {
+        return DynamicContextHolder.getContext();
+    }
+
+    private static <D extends DynamicContext> void setContext(D dynamicContext) {
+        DynamicContextHolder.setContext(dynamicContext);
+    }
+
     /**
      * 应用策略方法 - 完整的生命周期
      * 
      * <p>按照预定义的生命周期执行策略：前置处理 -> 加载上下文 -> 业务处理 -> 后置处理 -> 异常处理</p>
      * 
      * @param requestParameter 请求参数
-     * @param dynamicContext 动态上下文
      * @return 处理结果
      * @throws Exception 如果执行过程中发生异常
      */
     @Override
-    public R apply(T requestParameter, D dynamicContext) throws Exception {
+    public R apply(T requestParameter) throws Exception {
         // 生成请求 ID，用于链路追踪
         String requestId = MDC.get("requestId");
         if (requestId == null) {
@@ -84,32 +91,35 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
         
         log.info("策略执行开始 - requestId: {}, strategy: {}, request: {}", 
                 requestId, strategyName, requestParameter);
-        
+
         try {
+
             // 1. 前置处理
-            R applyBefore = applyBefore(requestParameter, dynamicContext);
+            R applyBefore = applyBefore(requestParameter);
             if (applyBefore != null) {
                 log.info("前置处理直接返回 - requestId: {}, strategy: {}", requestId, strategyName);
                 return applyBefore;
             }
 
             // 2. 加载上下文
-            loadContext(requestParameter, dynamicContext);
-            log.debug("上下文加载完成 - requestId: {}, contextSize: {}", 
-                     requestId, dynamicContext.size());
+            D dynamicContext = loadContext(requestParameter);
+            // 放到ThreadLocal中
+            setContext(dynamicContext);
+            log.debug("上下文加载完成 - requestId: {}, dynamicContext: {}",
+                     requestId, dynamicContext);
 
             // 3. 核心业务处理
-            R r = doApply(requestParameter, dynamicContext);
+            R result = doApply(requestParameter);
             
             // 4. 后置处理
-            applyAfter(requestParameter, dynamicContext, r);
+            applyAfter(requestParameter, result);
             
             // 记录执行时间
             long costTime = System.currentTimeMillis() - startTime;
             log.info("策略执行成功 - requestId: {}, strategy: {}, cost: {}ms", 
                     requestId, strategyName, costTime);
             
-            return r;
+            return result;
             
         } catch (BusinessException e) {
             // 业务异常：只记录消息，不记录堆栈
@@ -117,7 +127,7 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
             log.warn("业务异常 - requestId: {}, strategy: {}, cost: {}ms, message: {}", 
                     requestId, strategyName, costTime, e.getMessage());
             
-            applyAfterException(requestParameter, dynamicContext, e);
+            applyAfterException(requestParameter, e);
             throw e;
             
         } catch (StrategyMappingException | StrategyExecutionException e) {
@@ -126,7 +136,7 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
             log.error("策略异常 - requestId: {}, strategy: {}, cost: {}ms, message: {}", 
                      requestId, strategyName, costTime, e.getMessage(), e);
             
-            applyAfterException(requestParameter, dynamicContext, e);
+            applyAfterException(requestParameter, e);
             throw e;
             
         } catch (Exception e) {
@@ -135,14 +145,15 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
             log.error("系统异常 - requestId: {}, strategy: {}, cost: {}ms", 
                      requestId, strategyName, costTime, e);
             
-            applyAfterException(requestParameter, dynamicContext, e);
+            applyAfterException(requestParameter, e);
             throw new StrategyExecutionException(
                 String.format("策略执行失败 - requestId: %s, strategy: %s", requestId, strategyName), 
                 e);
         } finally {
             // 手动清理上下文（兼容 JDK 1.8）
             try {
-                dynamicContext.close();
+
+                DynamicContextHolder.clear();
                 log.debug("上下文已清理 - requestId: {}", requestId);
             } catch (Exception e) {
                 log.warn("清理上下文失败 - requestId: {}", requestId, e);
@@ -154,15 +165,14 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
 
     /**
      * 路由方法 - 直接获取处理器并执行
-     * 
+     *
      * <p>不执行完整的生命周期，直接根据请求获取对应的处理器并执行。</p>
-     * 
+     *
      * @param requestParameter 请求参数
-     * @param dynamicContext 动态上下文
      * @return 处理结果
      * @throws Exception 如果执行过程中发生异常
      */
-    public R router(T requestParameter, D dynamicContext) throws Exception {
+    public R router(T requestParameter) throws Exception {
         String requestId = MDC.get("requestId");
         if (requestId == null) {
             requestId = String.valueOf(System.currentTimeMillis());
@@ -171,7 +181,7 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
         log.debug("策略路由开始 - requestId: {}, strategy: {}", requestId, this.getClass().getSimpleName());
         
         // 获取下一个待执行的策略处理器
-        StrategyHandler<T, D, R> handler = this.getNextHandler(requestParameter, dynamicContext);
+        StrategyHandler<T, D, R> handler = this.getNextHandler(requestParameter);
         
         // 如果没有找到处理器，抛出异常
         if (handler == null) {
@@ -185,7 +195,7 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
                  requestId, handler.getClass().getSimpleName());
         
         // 执行处理器
-        return handler.apply(requestParameter, dynamicContext);
+        return handler.apply(requestParameter);
     }
 
     /**
@@ -195,11 +205,10 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
      * <p>如果返回非 null 值，则直接返回，不再执行后续步骤。</p>
      * 
      * @param requestParameter 请求参数
-     * @param dynamicContext 动态上下文
      * @return 如果返回非 null 则直接返回，否则继续执行后续步骤
      * @throws Exception 如果前置处理失败
      */
-    protected R applyBefore(T requestParameter, D dynamicContext) throws Exception {
+    protected R applyBefore(T requestParameter) throws Exception {
         // 默认不做任何处理
         return null;
     }
@@ -210,24 +219,20 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
      * <p>从请求参数或其他来源加载业务处理所需的数据到上下文中。</p>
      * 
      * @param requestParameter 请求参数
-     * @param dynamicContext 动态上下文
      * @throws Exception 如果加载失败
      */
-    protected void loadContext(T requestParameter, D dynamicContext) throws Exception {
-        // 默认不做任何处理
-    }
+    protected abstract D loadContext(T requestParameter) throws Exception;
 
     /**
      * 核心业务处理
-     * 
+     *
      * <p>实现具体的业务逻辑，这是策略的核心部分。</p>
-     * 
+     *
      * @param requestParameter 请求参数
-     * @param dynamicContext 动态上下文
      * @return 业务处理结果
      * @throws Exception 如果业务处理失败
      */
-    protected abstract R doApply(T requestParameter, D dynamicContext) throws Exception;
+    protected abstract R doApply(T requestParameter) throws Exception;
 
     /**
      * 后置处理
@@ -235,11 +240,10 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
      * <p>在业务处理成功后执行，可以进行日志记录、数据清理、发送通知等操作。</p>
      * 
      * @param requestParameter 请求参数
-     * @param dynamicContext 动态上下文
      * @param response 业务处理结果
      * @throws Exception 如果后置处理失败
      */
-    protected void applyAfter(T requestParameter, D dynamicContext, R response) throws Exception {
+    protected void applyAfter(T requestParameter, R response) throws Exception {
         // 默认不做任何处理
     }
 
@@ -249,10 +253,9 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
      * <p>在发生异常时执行，可以记录异常信息、发送告警、进行补偿操作等。</p>
      * 
      * @param requestParameter 请求参数
-     * @param dynamicContext 动态上下文
      * @param e 发生的异常
      */
-    protected void applyAfterException(T requestParameter, D dynamicContext, Exception e) {
+    protected void applyAfterException(T requestParameter,  Exception e) {
         // 默认不做任何处理
         log.debug("异常处理回调 - strategy: {}, exception: {}", 
                  this.getClass().getSimpleName(), e.getMessage());

@@ -1,4 +1,4 @@
-package com.leenow.wrench.design.framework.strategy.annotation;
+package com.leenow.wrench.design.framework.annostrategy.annotation;
 
 import java.lang.annotation.*;
 

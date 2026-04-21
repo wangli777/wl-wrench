@@ -1,9 +1,9 @@
-package com.leenow.wrench.design.framework.strategy.support;
+package com.leenow.wrench.design.framework.annostrategy.support;
 
+import com.leenow.wrench.design.framework.annostrategy.StrategyHandler;
 import com.leenow.wrench.design.framework.strategy.DynamicContext;
-import com.leenow.wrench.design.framework.strategy.StrategyHandler;
-import com.leenow.wrench.design.framework.strategy.annotation.Action;
-import com.leenow.wrench.design.framework.strategy.annotation.Condition;
+import com.leenow.wrench.design.framework.annostrategy.annotation.Action;
+import com.leenow.wrench.design.framework.annostrategy.annotation.Condition;
 import com.leenow.wrench.design.framework.strategy.base.BaseRequest;
 import com.leenow.wrench.design.framework.strategy.base.BaseResponse;
 
@@ -65,7 +65,7 @@ public abstract class AnnotatedStrategyHandler<T extends BaseRequest,D extends D
      * @throws Exception 如果动作执行失败
      */
     @Override
-    public  R apply(T requestParameter, D dynamicContext) throws Exception {
+    public  R handle(T requestParameter, D dynamicContext) throws Exception {
         return AnnotationSupport.executeAction(this, requestParameter, dynamicContext);
     }
 }
