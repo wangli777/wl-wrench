@@ -223,7 +223,9 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
      * @param requestParameter 请求参数
      * @throws Exception 如果加载失败
      */
-    protected abstract void loadContext(T requestParameter) throws Exception;
+    protected void loadContext(T requestParameter) throws Exception{
+
+    }
 
     /**
      * 核心业务处理

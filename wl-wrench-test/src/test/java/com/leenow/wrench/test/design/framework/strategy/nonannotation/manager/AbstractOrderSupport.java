@@ -10,8 +10,9 @@ import com.leenow.wrench.test.design.framework.strategy.nonannotation.OrderRespo
 
 public abstract class AbstractOrderSupport extends AbstractStrategyRouter<OrderRequest, OrderContext, OrderResponse> {
 
-    @Override
-    protected void loadContext(OrderRequest requestParameter) throws Exception {
-    }
+//    @Override
+//    protected void loadContext(com.leenow.wrench.test.design.framework.strategy.nonannotation.OrderRequest requestParameter) throws Exception {
+//        super.loadContext(requestParameter);
+//    }
 
 }
