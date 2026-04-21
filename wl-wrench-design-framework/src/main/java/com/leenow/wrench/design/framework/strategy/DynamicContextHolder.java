@@ -17,8 +17,13 @@ public class DynamicContextHolder {
         }
         CONTEXT_HOLDER.set(context);
     }
-    public static <T extends DynamicContext> T getContext() {
-        return (T)CONTEXT_HOLDER.get();
+    /**
+     * 获取当前线程的上下文
+     *
+     * @return 上下文对象，如果不存在则返回 null
+     */
+    public static DynamicContext getContext() {
+        return CONTEXT_HOLDER.get();
     }
 
     public static void clear() {

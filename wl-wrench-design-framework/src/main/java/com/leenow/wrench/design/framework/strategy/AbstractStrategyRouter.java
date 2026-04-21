@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import java.util.UUID;
+
 /**
  * 抽象策略路由器
  * 
@@ -60,8 +62,9 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
      */
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
+    @SuppressWarnings("unchecked")
     public D getContext() {
-        return DynamicContextHolder.getContext();
+        return (D) DynamicContextHolder.getContext();
     }
 
     private static <D extends DynamicContext> void setContext(D dynamicContext) {
@@ -82,7 +85,7 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
         // 生成请求 ID，用于链路追踪
         String requestId = MDC.get("requestId");
         if (requestId == null) {
-            requestId = String.valueOf(System.currentTimeMillis());
+            requestId = UUID.randomUUID().toString().replace("-", "");
             MDC.put("requestId", requestId);
         }
         
@@ -103,7 +106,7 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
 
             // 2. 加载上下文
             D dynamicContext = loadContext(requestParameter);
-            // 放到ThreadLocal中
+            // 放到 ThreadLocal 中
             setContext(dynamicContext);
             log.debug("上下文加载完成 - requestId: {}, dynamicContext: {}",
                      requestId, dynamicContext);

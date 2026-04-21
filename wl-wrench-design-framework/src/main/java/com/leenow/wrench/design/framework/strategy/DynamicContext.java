@@ -1,7 +1,7 @@
 package com.leenow.wrench.design.framework.strategy;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -11,7 +11,10 @@ import java.util.Map;
 public class DynamicContext{
     
 
-    private final Map<String, TypedValue<?>> extendProperties = new HashMap<>();
+    // 虽然 DynamicContext 存储在 ThreadLocal 中，单线程内通常是安全的，
+    // 但如果某个实现方在 loadContext 中启动了子线程并共享了同一个 Context 引用，HashMap 在并发 put 时可能出现无限循环或数据丢失。
+    // 所以使用ConcurrentHashMap
+    private final Map<String, TypedValue<?>> extendProperties = new ConcurrentHashMap<>();
 
     /**
      * 设置值（带类型信息）
