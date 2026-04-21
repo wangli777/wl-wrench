@@ -67,7 +67,7 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
         return (D) DynamicContextHolder.getContext();
     }
 
-    private static <D extends DynamicContext> void setContext(D dynamicContext) {
+    protected static <D extends DynamicContext> void setContext(D dynamicContext) {
         DynamicContextHolder.setContext(dynamicContext);
     }
 
@@ -105,11 +105,10 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
             }
 
             // 2. 加载上下文
-            D dynamicContext = loadContext(requestParameter);
-            // 放到 ThreadLocal 中
-            setContext(dynamicContext);
+            loadContext(requestParameter);
+
             log.debug("上下文加载完成 - requestId: {}, dynamicContext: {}",
-                     requestId, dynamicContext);
+                     requestId, getContext());
 
             // 3. 核心业务处理
             R result = doApply(requestParameter);
@@ -224,7 +223,7 @@ public abstract class AbstractStrategyRouter<T extends BaseRequest, D extends Dy
      * @param requestParameter 请求参数
      * @throws Exception 如果加载失败
      */
-    protected abstract D loadContext(T requestParameter) throws Exception;
+    protected abstract void loadContext(T requestParameter) throws Exception;
 
     /**
      * 核心业务处理

@@ -56,7 +56,7 @@ public class ThirdNode extends AbstractOrderSupport {
      * 2. loadContext 在需要的节点就重写，不需要的节点不用处理
      */
     @Override
-    protected OrderContext loadContext(OrderRequest requestParameter) throws Exception {
+    protected void loadContext(OrderRequest requestParameter) throws Exception {
         CompletableFuture<String> accountType01 = CompletableFuture.supplyAsync(() -> {
             log.info("异步查询账户标签，账户标签；开户|冻结|止付|可用");
             return new Random().nextBoolean() ? "账户冻结" : "账户可用";
@@ -78,7 +78,10 @@ public class ThirdNode extends AbstractOrderSupport {
                     context.setValue("accountType01", accountType01.join(), String.class);
                     context.setValue("accountType02", accountType02.join(), String.class);
                 }).join();
-        return context;
+
+        // 放到 ThreadLocal 中
+        setContext(context);
+
     }
 
     @Override
